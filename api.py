@@ -1,6 +1,6 @@
 import uvicorn
  
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -46,15 +46,25 @@ def add_question(req: QuestionRequest):
         "a": req.answer
     })
 
-# TODO: Add a new route that can be used to delete a question/answer from the dataset.
 @app.delete("/delete/{id}")
 def delete_question(id: int):
-    pass
+    for q in questions:
+        if id in q.values():
+            questions.remove(q)
+            return
+        else: continue
+        
+    raise HTTPException(status.HTTP_404_NOT_FOUND, f"Question with ID {id} not found")
 
-# TODO: Add a new route that can be used to update a question/answer within the dataset.
 @app.put("/update/{id}")
 def update_question(id: int, req: QuestionRequest):
-    pass
+    for q in questions:
+        if id in q.values():
+            q.update({"q": req.question, "a": req.answer})
+            return
+        else: continue
+            
+    raise HTTPException(status.HTTP_404_NOT_FOUND, f"Question with ID {id} not found")
 
 if __name__=="__main__":
     uvicorn.run(app, port=8005)
